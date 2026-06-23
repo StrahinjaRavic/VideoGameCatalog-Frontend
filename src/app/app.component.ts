@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -12,6 +13,17 @@ import { CommonModule } from '@angular/common';
         <a class="navbar-brand" routerLink="/">Game Catalog</a>
         <ul class="navbar-nav me-auto">
           <li class="nav-item"><a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Games</a></li>
+
+        </ul>
+        <ul class="navbar-nav">
+          <ng-container *ngIf="!auth.isLoggedIn(); else logged">
+            <li class="nav-item"><a class="nav-link" routerLink="/login">Login</a></li>
+            <li class="nav-item"><a class="nav-link" routerLink="/register">Register</a></li>
+          </ng-container>
+          <ng-template #logged>
+            <li class="nav-item"><span class="nav-link text-light">{{ auth.displayName() }}</span></li>
+            <li class="nav-item"><button class="btn btn-outline-light btn-sm mt-1" (click)="logout()">Logout</button></li>
+          </ng-template>
         </ul>
       </div>
     </nav>
