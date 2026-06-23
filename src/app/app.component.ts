@@ -1,17 +1,20 @@
 import { Component, inject } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, CommonModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
   template: `
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
       <div class="container">
         <a class="navbar-brand" routerLink="/">Game Catalog</a>
-        <ul class="navbar-nav ms-auto">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Games</a></li>
+        </ul>
+        <ul class="navbar-nav">
           <ng-container *ngIf="!auth.isLoggedIn(); else logged">
             <li class="nav-item"><a class="nav-link" routerLink="/login">Login</a></li>
             <li class="nav-item"><a class="nav-link" routerLink="/register">Register</a></li>
