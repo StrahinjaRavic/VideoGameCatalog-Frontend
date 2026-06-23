@@ -1,1 +1,5 @@
 body { background: #f6f7f9; }
+.game-card img { object-fit: cover; height: 200px; width: 100%; }
+.star-rating { color: #f5b301; font-size: 1.1rem; }
+.rejection-box { background: #fff3cd; border: 1px solid #ffeeba; padding: 0.5rem 0.75rem; border-radius: 0.25rem; }
+.container-narrow { max-width: 640px; }

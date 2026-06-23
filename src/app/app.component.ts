@@ -1,7 +1,7 @@
+
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -13,6 +13,7 @@ import { AuthService } from './services/auth.service';
         <a class="navbar-brand" routerLink="/">Game Catalog</a>
         <ul class="navbar-nav me-auto">
           <li class="nav-item"><a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Games</a></li>
+
         </ul>
         <ul class="navbar-nav">
           <ng-container *ngIf="!auth.isLoggedIn(); else logged">
@@ -35,8 +36,5 @@ import { AuthService } from './services/auth.service';
   `
 })
 export class AppComponent {
-  auth = inject(AuthService);
   year = new Date().getFullYear();
-
-  logout() { this.auth.logout(); }
 }
