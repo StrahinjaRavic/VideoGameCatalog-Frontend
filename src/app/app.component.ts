@@ -1,25 +1,17 @@
-import { Component, inject } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { Component } from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, CommonModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
   template: `
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
       <div class="container">
         <a class="navbar-brand" routerLink="/">Game Catalog</a>
-        <ul class="navbar-nav ms-auto">
-          <ng-container *ngIf="!auth.isLoggedIn(); else logged">
-            <li class="nav-item"><a class="nav-link" routerLink="/login">Login</a></li>
-            <li class="nav-item"><a class="nav-link" routerLink="/register">Register</a></li>
-          </ng-container>
-          <ng-template #logged>
-            <li class="nav-item"><span class="nav-link text-light">{{ auth.displayName() }}</span></li>
-            <li class="nav-item"><button class="btn btn-outline-light btn-sm mt-1" (click)="logout()">Logout</button></li>
-          </ng-template>
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Games</a></li>
         </ul>
       </div>
     </nav>
@@ -32,8 +24,5 @@ import { AuthService } from './services/auth.service';
   `
 })
 export class AppComponent {
-  auth = inject(AuthService);
   year = new Date().getFullYear();
-
-  logout() { this.auth.logout(); }
 }
