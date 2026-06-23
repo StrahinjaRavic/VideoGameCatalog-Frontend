@@ -13,6 +13,7 @@ import { AuthService } from './services/auth.service';
         <a class="navbar-brand" routerLink="/">Game Catalog</a>
         <ul class="navbar-nav me-auto">
           <li class="nav-item"><a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Games</a></li>
+          <li class="nav-item" *ngIf="auth.isAdmin()"><a class="nav-link" routerLink="/admin" routerLinkActive="active">Admin</a></li>
         </ul>
         <ul class="navbar-nav">
           <ng-container *ngIf="!auth.isLoggedIn(); else logged">
