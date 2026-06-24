@@ -1,13 +1,15 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { CatalogService } from '../services/catalog.service';
+import { AuthService } from '../services/auth.service';
 import { GameDetail, PublicReview } from '../models/models';
 
 @Component({
   selector: 'app-game-detail',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink, FormsModule],
   template: `
     <div *ngIf="game">
       <div class="row">
@@ -46,6 +48,32 @@ import { GameDetail, PublicReview } from '../models/models';
 
       <h4>Reviews</h4>
 
+      <div *ngIf="auth.isUser()" class="card mb-4">
+        <div class="card-body">
+          <h6 class="card-title">{{ myReview ? 'Update your review' : 'Leave a review' }}</h6>
+          <div class="mb-2">
+            <label class="form-label">Rating</label>
+            <select class="form-select" [(ngModel)]="myRating">
+              <option *ngFor="let n of [1,2,3,4,5]" [ngValue]="n">{{ n }}</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Comment</label>
+            <textarea class="form-control" rows="3" [(ngModel)]="myComment" maxlength="5000"></textarea>
+          </div>
+          <div *ngIf="myReview?.status === 'REJECTED'" class="rejection-box mb-2">
+            <strong>Your previous comment was rejected.</strong> Reason: {{ myReview?.rejectionReason }}
+          </div>
+          <button class="btn btn-primary" (click)="submitReview()" [disabled]="submitting">Submit</button>
+          <button *ngIf="myReview" class="btn btn-outline-danger ms-2" (click)="deleteMyReview()">Delete</button>
+          <div *ngIf="message" class="mt-2 small text-muted">{{ message }}</div>
+        </div>
+      </div>
+
+      <div *ngIf="!auth.isLoggedIn()" class="alert alert-info">
+        <a routerLink="/login">Log in</a> or <a routerLink="/register">register</a> to leave a review.
+      </div>
+
       <div *ngIf="visibleReviews().length === 0" class="text-muted">No reviews yet.</div>
 
       <div class="card mb-2" *ngFor="let r of visibleReviews()">
@@ -64,6 +92,7 @@ import { GameDetail, PublicReview } from '../models/models';
           <div *ngIf="r.status === 'REJECTED'" class="rejection-box mt-2">
             <em>Comment rejected: {{ r.rejectionReason }}</em>
           </div>
+          <div *ngIf="r.status === 'PENDING'" class="text-muted small mt-2"><em>Comment pending admin approval.</em></div>
         </div>
       </div>
     </div>
@@ -74,25 +103,71 @@ import { GameDetail, PublicReview } from '../models/models';
 export class GameDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private catalog = inject(CatalogService);
+  auth = inject(AuthService);
 
   game?: GameDetail;
   reviews: PublicReview[] = [];
   error = '';
 
+  myRating = 5;
+  myComment = '';
+  submitting = false;
+  message = '';
+
   ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
+    this.load(id);
+  }
+
+  load(id: number) {
     this.catalog.getGame(id).subscribe({
       next: g => this.game = g,
       error: err => this.error = err?.error?.message || 'Failed to load game'
     });
-    this.catalog.listReviewsForGame(id).subscribe(rs => this.reviews = rs);
+    this.catalog.listReviewsForGame(id).subscribe(rs => {
+      this.reviews = rs;
+      const mine = this.myReview;
+      if (mine) { this.myRating = mine.rating; this.myComment = mine.comment || ''; }
+    });
+  }
+
+  get myReview(): PublicReview | undefined {
+    const uid = this.auth.userId();
+    const name = this.auth.displayName();
+    if (!uid || !name) return undefined;
+    return this.reviews.find(r => r.userFullName === name);
   }
 
   visibleReviews(): PublicReview[] {
-    return this.reviews.filter(r => r.status !== 'PENDING');
+    return this.reviews.filter(r => r.status !== 'PENDING' || r.userFullName === this.auth.displayName());
   }
 
   imageUrl() { return this.game ? this.catalog.imageUrl(this.game.id) : ''; }
 
   counter(n: number) { return Array(Math.max(0, n)).fill(0); }
+
+  submitReview() {
+    if (!this.game) return;
+    this.submitting = true;
+    this.catalog.submitReview(this.game.id, this.myRating, this.myComment).subscribe({
+      next: () => {
+        this.submitting = false;
+        this.message = 'Submitted. Comment awaits admin approval; rating applies immediately.';
+        this.load(this.game!.id);
+      },
+      error: err => {
+        this.submitting = false;
+        this.message = err?.error?.message || 'Submit failed';
+      }
+    });
+  }
+
+  deleteMyReview() {
+    const mine = this.myReview;
+    if (!mine || !this.game) return;
+    this.catalog.deleteReview(mine.id).subscribe(() => {
+      this.myComment = ''; this.myRating = 5; this.message = 'Review deleted';
+      this.load(this.game!.id);
+    });
+  }
 }

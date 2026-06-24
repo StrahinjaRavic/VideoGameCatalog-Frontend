@@ -6,6 +6,7 @@ export const routes: Routes = [
   { path: 'games/:id', loadComponent: () => import('./components/game-detail.component').then(m => m.GameDetailComponent) },
   { path: 'login', loadComponent: () => import('./components/login.component').then(m => m.LoginComponent) },
   { path: 'register', loadComponent: () => import('./components/register.component').then(m => m.RegisterComponent) },
+  { path: 'contact', loadComponent: () => import('./components/contact.component').then(m => m.ContactComponent) },
   {
     path: 'admin',
     canActivate: [authGuard, adminGuard],
@@ -18,5 +19,6 @@ export const routes: Routes = [
       { path: 'platforms', loadComponent: () => import('./components/admin/admin-platforms.component').then(m => m.AdminPlatformsComponent) },
       { path: 'reviews', loadComponent: () => import('./components/admin/admin-reviews.component').then(m => m.AdminReviewsComponent) }
     ]
-  }
+  },
+  { path: '**', redirectTo: '' }
 ];
